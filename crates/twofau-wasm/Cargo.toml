@@ -1,0 +1,23 @@
+[package]
+name = "twofau-wasm"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "wasm-bindgen wrapper around twofau-core for the browser/extension."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+# The wasm-opt bundled with older wasm-pack can't parse modern multi-table wasm.
+# Skip it here; release size-opt can run in CI with an up-to-date toolchain.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[dependencies]
+twofau-core = { path = "../twofau-core" }
+wasm-bindgen = "0.2"
+serde-wasm-bindgen = "0.6"
+js-sys = "0.3"
+base64 = "0.22"
+uuid = { version = "1", features = ["v4", "js"] }
+getrandom = { version = "0.2", features = ["js"] }

@@ -1,0 +1,11 @@
+{
+  "name": "2fau",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "build:wasm": "pnpm --filter @twofau/core-wasm build:wasm",
+    "test": "pnpm -r test"
+  }
+}

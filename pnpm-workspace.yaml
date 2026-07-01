@@ -1,0 +1,3 @@
+packages:
+  - "packages/*"
+  # apps/* added in later sub-projects (Tauri desktop, Chrome extension)
