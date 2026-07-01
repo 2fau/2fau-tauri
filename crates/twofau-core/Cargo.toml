@@ -7,14 +7,16 @@ description = "Pure OTP/model/merge logic for 2FAU (no I/O, no clock, no RNG)."
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 hmac = "0.12"
 sha1 = "0.10"
 sha2 = "0.10"
+pbkdf2 = "0.12"
+aes-gcm = "0.10"
+zeroize = { version = "1", features = ["derive"] }
 url = "2"
 percent-encoding = "2"
 uuid = { version = "1", features = ["serde"] }
 base64 = "0.22"
 ts-rs = "10"
 
-[dev-dependencies]
-serde_json = "1"

@@ -12,6 +12,8 @@ import init, {
   base32_decode as _base32Decode,
   parse_otpauth as _parseOtpauth,
   merge as _merge,
+  seal_vault as _sealVault,
+  open_vault as _openVault,
   new_id as _newId,
   now_ms as _nowMs,
 } from "./pkg/twofau_wasm.js";
@@ -69,6 +71,16 @@ export async function parseOtpauth(uri: string): Promise<ParsedOtp> {
 export async function merge(local: VaultDocument, remote: VaultDocument): Promise<VaultDocument> {
   await ensureReady();
   return _merge(local, remote) as VaultDocument;
+}
+
+export async function sealVault(doc: VaultDocument, passphrase: string): Promise<Uint8Array> {
+  await ensureReady();
+  return _sealVault(doc, passphrase);
+}
+
+export async function openVault(blob: Uint8Array, passphrase: string): Promise<VaultDocument> {
+  await ensureReady();
+  return _openVault(blob, passphrase) as VaultDocument;
 }
 
 export async function newId(): Promise<string> {

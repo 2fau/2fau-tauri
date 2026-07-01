@@ -6,7 +6,7 @@
 //! strings, never as byte arrays.
 
 use base64::{engine::general_purpose::STANDARD, Engine};
-use twofau_core::{OtpAlgorithm, VaultDocument};
+use twofau_core::{OtpAlgorithm, VaultDocument, NONCE_LEN, SALT_LEN};
 use wasm_bindgen::prelude::*;
 
 fn parse_algo(s: &str) -> Result<OtpAlgorithm, JsError> {
@@ -80,6 +80,27 @@ pub fn merge(local: JsValue, remote: JsValue) -> Result<JsValue, JsError> {
     Ok(serde_wasm_bindgen::to_value(&twofau_core::merge(
         &local, &remote,
     ))?)
+}
+
+/// Encrypt a `VaultDocument` under `passphrase`, returning the opaque blob.
+/// The random salt + nonce are generated here (the extension stores the blob).
+#[wasm_bindgen]
+pub fn seal_vault(doc: JsValue, passphrase: &str) -> Result<Vec<u8>, JsError> {
+    let doc: VaultDocument = serde_wasm_bindgen::from_value(doc)?;
+    let mut salt = [0u8; SALT_LEN];
+    let mut nonce = [0u8; NONCE_LEN];
+    getrandom::getrandom(&mut salt).map_err(|_| JsError::new("RNG failure"))?;
+    getrandom::getrandom(&mut nonce).map_err(|_| JsError::new("RNG failure"))?;
+    twofau_core::seal_with_passphrase(&doc, passphrase, &salt, &nonce)
+        .map_err(|e| JsError::new(&e.to_string()))
+}
+
+/// Decrypt a blob under `passphrase`, returning the `VaultDocument`.
+#[wasm_bindgen]
+pub fn open_vault(blob: &[u8], passphrase: &str) -> Result<JsValue, JsError> {
+    let doc = twofau_core::open_with_passphrase(blob, passphrase)
+        .map_err(|e| JsError::new(&e.to_string()))?;
+    Ok(serde_wasm_bindgen::to_value(&doc)?)
 }
 
 /// Generate a fresh account id (UUID v4). Randomness lives only here.

@@ -4,7 +4,7 @@
 
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
-import init, { merge, totp } from "./pkg/twofau_wasm.js";
+import init, { merge, open_vault, seal_vault, totp } from "./pkg/twofau_wasm.js";
 
 beforeAll(async () => {
   const wasm = readFileSync(new URL("./pkg/twofau_wasm_bg.wasm", import.meta.url));
@@ -36,5 +36,35 @@ describe("wasm interop", () => {
     const out = merge({ entries: [entry(1)], tombstones: [] }, { entries: [entry(2)], tombstones: [] });
     expect(out.entries).toHaveLength(1);
     expect(out.entries[0].modified_at).toBe(2);
+  });
+
+  it("seals and opens a vault (passphrase round-trip)", () => {
+    const doc = {
+      entries: [
+        {
+          account: {
+            id: "22222222-2222-2222-2222-222222222222",
+            issuer: "Acme",
+            label: "me",
+            otp_type: "Totp",
+            algorithm: "Sha1",
+            digits: 6,
+            period: 30,
+            counter: 0,
+          },
+          secret: Buffer.from("s3cr3t").toString("base64"),
+          modified_at: 5,
+        },
+      ],
+      tombstones: [],
+    };
+    const blob = seal_vault(doc, "correct horse");
+    expect(blob).toBeInstanceOf(Uint8Array);
+    expect(Buffer.from(blob.subarray(0, 4)).toString()).toBe("2FAU");
+
+    const opened = open_vault(blob, "correct horse");
+    expect(opened.entries[0].secret).toBe(Buffer.from("s3cr3t").toString("base64"));
+
+    expect(() => open_vault(blob, "wrong")).toThrow();
   });
 });
