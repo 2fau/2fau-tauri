@@ -6,6 +6,9 @@
 node_modules
 .pnpm-store
 
+# Storybook build output
+storybook-static
+
 # wasm-pack build output (regenerated)
 packages/core-wasm/pkg
 

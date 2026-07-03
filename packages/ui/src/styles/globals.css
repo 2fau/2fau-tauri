@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+/* macOS-flavoured theme. Light/dark follow the system appearance
+   (prefers-color-scheme), matching a native menu-bar app. */
+:root {
+  --background: #ffffff;
+  --foreground: #1d1d1f;
+  --card: #ffffff;
+  --card-foreground: #1d1d1f;
+  --muted: #f5f5f7; /* SwiftUI .quaternary-ish fills */
+  --muted-foreground: #6e6e73; /* .secondary */
+  --tertiary-foreground: #8e8e93; /* .tertiary */
+  --secondary: #f0f0f2;
+  --secondary-foreground: #1d1d1f;
+  --accent: #f0f0f2;
+  --accent-foreground: #1d1d1f;
+  --border: #e3e3e6;
+  --input: #e3e3e6;
+  --primary: #007aff; /* macOS accent / .tint */
+  --primary-foreground: #ffffff;
+  --destructive: #ff3b30;
+  --destructive-foreground: #ffffff;
+  --success: #34c759;
+  --ring: #007aff;
+  --radius: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1e1e1e;
+    --foreground: #f5f5f7;
+    --card: #262628;
+    --card-foreground: #f5f5f7;
+    --muted: #2c2c2e;
+    --muted-foreground: #98989d;
+    --tertiary-foreground: #7c7c80;
+    --secondary: #303032;
+    --secondary-foreground: #f5f5f7;
+    --accent: #303032;
+    --accent-foreground: #f5f5f7;
+    --border: #38383a;
+    --input: #38383a;
+    --primary: #0a84ff;
+    --primary-foreground: #ffffff;
+    --destructive: #ff453a;
+    --destructive-foreground: #ffffff;
+    --success: #30d158;
+    --ring: #0a84ff;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-tertiary-foreground: var(--tertiary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro",
+    system-ui, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, monospace;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
