@@ -1,12 +1,12 @@
 [workspace]
 resolver = "2"
-members = ["crates/twofau-core", "crates/twofau-wasm"]
+members = ["crates/twofau-core", "crates/twofau-wasm", "apps/twofau-app/src-tauri"]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/artkost/2fau"
+repository = "https://github.com/2fau/2fau-app"
 
 [profile.release]
 lto = true

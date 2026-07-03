@@ -5,7 +5,11 @@
   "type": "module",
   "packageManager": "pnpm@9.12.0",
   "scripts": {
-    "build:wasm": "pnpm --filter @twofau/core-wasm build:wasm",
-    "test": "pnpm -r test"
+    "build:core-wasm": "pnpm --filter @twofau/core-wasm build:wasm",
+    "test": "pnpm -r test",
+    "dev": "pnpm --filter @twofau/app dev",
+    "build:app": "pnpm --filter @twofau/app build",
+    "preview": "pnpm --filter @twofau/app preview",
+    "tauri": "pnpm --filter @twofau/app tauri"
   }
 }
