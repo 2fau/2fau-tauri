@@ -12,11 +12,9 @@ type Screen = { name: "list" } | { name: "add" } | { name: "edit"; account: Acco
  * 320px panel (no modals). Gated by the unlock screen when locked. */
 export function RootView({
   onScan,
-  onPaste,
   onQuit,
 }: {
   onScan?: () => void;
-  onPaste?: () => Promise<boolean>;
   onQuit?: () => void;
 }) {
   const { locked } = useVault();
@@ -35,7 +33,6 @@ export function RootView({
           onAdd={() => setScreen({ name: "add" })}
           onEdit={(account) => setScreen({ name: "edit", account })}
           onScan={onScan}
-          onPaste={onPaste}
           onQuit={onQuit}
         />
       )}

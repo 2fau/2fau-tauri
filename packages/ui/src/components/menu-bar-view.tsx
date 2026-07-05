@@ -13,16 +13,14 @@ export function MenuBarView({
   onAdd,
   onEdit,
   onScan,
-  onPaste,
   onQuit,
 }: {
   onAdd: () => void;
   onEdit: (a: Account) => void;
   onScan?: () => void;
-  onPaste?: () => Promise<boolean>;
   onQuit?: () => void;
 }) {
-  const { accounts, now, capabilities } = useVault();
+  const { accounts, now, capabilities, addUri } = useVault();
   const [search, setSearch] = useState("");
   const [pasteFailed, setPasteFailed] = useState(false);
 
@@ -33,13 +31,20 @@ export function MenuBarView({
       )
     : accounts;
 
+  // Quick-add: import an otpauth:// URI from the clipboard, refreshing the list
+  // through the provider. Flashes the icon red when there's nothing to import.
   async function handlePaste() {
-    if (!onPaste) return;
-    const ok = await onPaste();
-    if (!ok) {
-      setPasteFailed(true);
-      window.setTimeout(() => setPasteFailed(false), 300);
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text.startsWith("otpauth://")) {
+        await addUri(text);
+        return;
+      }
+    } catch {
+      // clipboard unreadable — fall through to the failure flash
     }
+    setPasteFailed(true);
+    window.setTimeout(() => setPasteFailed(false), 300);
   }
 
   return (

@@ -16,8 +16,10 @@ jobs:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --all --check
-      - run: cargo clippy --all-targets -- -D warnings
-      - run: cargo test --workspace
+      # Library crates only. The Tauri app is checked in the `app` job because its
+      # generate_context! macro needs a built frontend (dist/).
+      - run: cargo clippy -p twofau-core -p twofau-wasm --all-targets -- -D warnings
+      - run: cargo test -p twofau-core
 
   wasm:
     name: WASM build + JS interop
@@ -41,3 +43,29 @@ jobs:
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm build:wasm
       - run: pnpm --filter @twofau/core-wasm test
+      - run: pnpm --filter @twofau/ui test
+
+  app:
+    name: Tauri app (frontend build + cargo check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      # Tauri's Linux build deps (webkit2gtk etc.).
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libglib2.0-dev
+      - run: cargo test -p twofau-core # emit ts-rs bindings for the UI types
+      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm build:wasm
+      - run: pnpm --filter @twofau/app build # tsc + vite -> dist/
+      - run: cargo check -p twofau-app

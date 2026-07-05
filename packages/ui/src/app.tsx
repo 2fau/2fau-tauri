@@ -8,17 +8,15 @@ import { VaultProvider } from "@/state/vault-provider";
 export function TwoFAUApp({
   service,
   onScan,
-  onPaste,
   onQuit,
 }: {
   service: VaultService;
   onScan?: () => void;
-  onPaste?: () => Promise<boolean>;
   onQuit?: () => void;
 }) {
   return (
     <VaultProvider service={service}>
-      <RootView onScan={onScan} onPaste={onPaste} onQuit={onQuit} />
+      <RootView onScan={onScan} onQuit={onQuit} />
     </VaultProvider>
   );
 }

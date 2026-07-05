@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "twofau-app",
+  "productName": "2FAU",
   "version": "0.1.0",
   "identifier": "dev.artkost.2fau",
   "build": {
@@ -10,11 +10,20 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
-        "title": "twofau-app",
-        "width": 800,
-        "height": 600
+        "label": "main",
+        "title": "2FAU",
+        "width": 320,
+        "height": 480,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "shadow": true
       }
     ],
     "security": {

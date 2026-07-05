@@ -5,6 +5,8 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "opener:default"
+    "core:window:allow-set-size",
+    "opener:default",
+    "positioner:default"
   ]
 }
