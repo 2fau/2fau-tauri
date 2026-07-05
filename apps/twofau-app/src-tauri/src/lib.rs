@@ -7,7 +7,7 @@ use tauri::{
 };
 use tauri_plugin_positioner::{Position, WindowExt};
 use twofau_core::Account;
-use vault::{default_vault_path, AppVault};
+use vault::{fallback_vault_path, AppVault};
 
 #[tauri::command]
 fn is_locked(vault: State<AppVault>) -> bool {
@@ -93,7 +93,16 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
-            app.manage(AppVault::new(default_vault_path()));
+            // Use this app's own data dir (keyed by the bundle identifier), NOT
+            // the legacy Swift app's ~/Library/Application Support/2fau — the two
+            // share a magic+version but differ after, so colliding paths make the
+            // old blob unreadable here.
+            let vault_path = app
+                .path()
+                .app_data_dir()
+                .map(|dir| dir.join("vault.dat"))
+                .unwrap_or_else(|_| fallback_vault_path());
+            app.manage(AppVault::new(vault_path));
 
             let show = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
             let quit_item = MenuItem::with_id(app, "quit", "Quit 2FAU", true, None::<&str>)?;

@@ -16,10 +16,12 @@ use uuid::Uuid;
 const KEYRING_SERVICE: &str = "dev.artkost.2fau";
 const KEYRING_USER: &str = "vault-passphrase";
 
-pub fn default_vault_path() -> PathBuf {
+/// Fallback vault location if Tauri's app-data dir can't be resolved. Uses the
+/// bundle identifier (not the legacy Swift app's `2fau` dir) to avoid collision.
+pub fn fallback_vault_path() -> PathBuf {
     dirs::data_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join("2fau")
+        .join("dev.artkost.2fau")
         .join("vault.dat")
 }
 
