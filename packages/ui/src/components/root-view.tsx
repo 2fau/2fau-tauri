@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AddView } from "@/components/add-view";
 import { EditView } from "@/components/edit-view";
 import { MenuBarView } from "@/components/menu-bar-view";
+import { SetupView } from "@/components/setup-view";
 import { UnlockView } from "@/components/unlock-view";
 import type { Account } from "@/core/types";
 import { useVault } from "@/state/vault-provider";
@@ -17,13 +18,17 @@ export function RootView({
   onScan?: () => void;
   onQuit?: () => void;
 }) {
-  const { locked } = useVault();
+  const { locked, needsSetup } = useVault();
   const [screen, setScreen] = useState<Screen>({ name: "list" });
 
   return (
     <div className="w-[320px] bg-background text-foreground">
       {locked ? (
-        <UnlockView />
+        needsSetup ? (
+          <SetupView />
+        ) : (
+          <UnlockView />
+        )
       ) : screen.name === "add" ? (
         <AddView onDone={() => setScreen({ name: "list" })} />
       ) : screen.name === "edit" ? (

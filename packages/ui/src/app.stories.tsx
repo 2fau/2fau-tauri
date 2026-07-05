@@ -51,6 +51,15 @@ export const Locked: Story = {
   ),
 };
 
+export const FirstRunSetup: Story = {
+  render: () => (
+    <TwoFAUApp
+      service={new MockVaultService({ seed: [], startUnlocked: false, needsSetup: true })}
+      onQuit={() => {}}
+    />
+  ),
+};
+
 export const ExtensionCapabilities: Story = {
   name: "Extension (no screen-scan)",
   render: () => (

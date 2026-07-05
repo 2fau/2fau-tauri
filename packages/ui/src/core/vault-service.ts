@@ -25,6 +25,9 @@ export interface AddManualFields {
 export interface VaultService {
   capabilities(): Capabilities;
   isLocked(): boolean;
+  /** True on first run (no vault yet) — the UI shows the passphrase-setup screen
+   * instead of the unlock screen. */
+  needsSetup(): boolean;
   unlock(passphrase: string): Promise<void>;
   list(): Promise<Account[]>;
   addUri(otpauthUri: string): Promise<Account>;

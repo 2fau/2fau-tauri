@@ -7,6 +7,7 @@ interface VaultContextValue {
   service: VaultService;
   capabilities: Capabilities;
   locked: boolean;
+  needsSetup: boolean;
   accounts: Account[];
   /** Current code per account id, recomputed every second. */
   codes: Record<string, string>;
@@ -58,6 +59,7 @@ export function VaultProvider({
     service,
     capabilities: service.capabilities(),
     locked,
+    needsSetup: service.needsSetup(),
     accounts,
     codes,
     now,

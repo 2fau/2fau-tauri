@@ -20,6 +20,11 @@ fn try_auto_unlock(vault: State<AppVault>) -> bool {
 }
 
 #[tauri::command]
+fn has_vault(vault: State<AppVault>) -> bool {
+    vault.has_vault()
+}
+
+#[tauri::command]
 fn unlock(vault: State<AppVault>, passphrase: String, remember: bool) -> Result<(), String> {
     vault.unlock(passphrase, remember)
 }
@@ -145,6 +150,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             is_locked,
             try_auto_unlock,
+            has_vault,
             unlock,
             list_accounts,
             code,

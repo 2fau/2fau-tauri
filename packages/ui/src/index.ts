@@ -5,6 +5,7 @@ export { AccountRow } from "@/components/account-row";
 export { AddView } from "@/components/add-view";
 export { EditView } from "@/components/edit-view";
 export { UnlockView } from "@/components/unlock-view";
+export { SetupView } from "@/components/setup-view";
 export { TimerRing } from "@/components/timer-ring";
 
 export { VaultProvider, useVault } from "@/state/vault-provider";

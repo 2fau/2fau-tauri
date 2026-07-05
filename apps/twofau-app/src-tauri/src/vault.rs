@@ -64,6 +64,11 @@ impl AppVault {
         self.inner.lock().expect("vault mutex").is_none()
     }
 
+    /// Whether an encrypted vault file already exists (first-run detection).
+    pub fn has_vault(&self) -> bool {
+        matches!(self.store.load(), Ok(Some(_)))
+    }
+
     pub fn unlock(&self, passphrase: String, remember: bool) -> Result<(), String> {
         let doc = match self.store.load().map_err(str_err)? {
             Some(blob) => open_with_passphrase(&blob, &passphrase).map_err(str_err)?,

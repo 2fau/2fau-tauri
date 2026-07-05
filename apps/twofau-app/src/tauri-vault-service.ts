@@ -8,9 +8,11 @@ import type { Account, AddManualFields, Capabilities, VaultService } from "@twof
  */
 export class TauriVaultService implements VaultService {
   private locked: boolean;
+  private setup: boolean;
 
-  constructor(startUnlocked: boolean) {
+  constructor(startUnlocked: boolean, needsSetup: boolean) {
     this.locked = !startUnlocked;
+    this.setup = needsSetup;
   }
 
   capabilities(): Capabilities {
@@ -20,6 +22,10 @@ export class TauriVaultService implements VaultService {
 
   isLocked(): boolean {
     return this.locked;
+  }
+
+  needsSetup(): boolean {
+    return this.setup;
   }
 
   async unlock(passphrase: string): Promise<void> {

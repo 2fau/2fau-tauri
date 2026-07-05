@@ -6,9 +6,9 @@ import ReactDOM from "react-dom/client";
 import { TauriVaultService } from "./tauri-vault-service";
 import "./index.css";
 
-function Root({ startUnlocked }: { startUnlocked: boolean }) {
+function Root({ startUnlocked, needsSetup }: { startUnlocked: boolean; needsSetup: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const service = useRef(new TauriVaultService(startUnlocked)).current;
+  const service = useRef(new TauriVaultService(startUnlocked, needsSetup)).current;
 
   // Keep the OS window's height matched to the panel content (like the Swift
   // resizePanelToFit) so the popup never has dead space or clips.
@@ -36,13 +36,18 @@ function Root({ startUnlocked }: { startUnlocked: boolean }) {
 
 async function bootstrap() {
   let startUnlocked = false;
+  let needsSetup = false;
   try {
     startUnlocked = await invoke<boolean>("try_auto_unlock");
+    if (!startUnlocked) {
+      // First run (no vault file) → show the setup screen, not unlock.
+      needsSetup = !(await invoke<boolean>("has_vault"));
+    }
   } catch {
     // stay locked; the unlock screen will handle it
   }
   ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-    <Root startUnlocked={startUnlocked} />,
+    <Root startUnlocked={startUnlocked} needsSetup={needsSetup} />,
   );
 }
 

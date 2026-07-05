@@ -14,6 +14,7 @@ export function fakeService(
   return {
     capabilities: () => ({ scanScreen: false, qrImage: true, paste: true, ...caps }),
     isLocked: () => false,
+    needsSetup: () => false,
     unlock: async () => {},
     list: async () => list,
     addUri: async () => list[0] as Account,
