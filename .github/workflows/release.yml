@@ -81,7 +81,7 @@ jobs:
       # The frontend needs the ts-rs bindings (cargo test) and the WASM package.
       - run: cargo test -p twofau-core
       - run: pnpm install --frozen-lockfile=false
-      - run: pnpm build:wasm
+      - run: pnpm build:core-wasm
 
       - uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
         env:

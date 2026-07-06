@@ -43,7 +43,7 @@ jobs:
       # Emit ts-rs bindings so the typed index has its types.
       - run: cargo test -p twofau-core
       - run: pnpm install --frozen-lockfile=false
-      - run: pnpm build:wasm
+      - run: pnpm build:core-wasm
       - run: pnpm --filter @twofau/core-wasm test
       - run: pnpm --filter @twofau/ui test
 
@@ -66,7 +66,7 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libglib2.0-dev
       - run: cargo test -p twofau-core # emit ts-rs bindings for the UI types
       - run: pnpm install --frozen-lockfile=false
-      - run: pnpm build:wasm
+      - run: pnpm build:core-wasm
       - run: pnpm --filter @twofau/app build # tsc + vite -> dist/
       - run: cargo check -p twofau-app
 
