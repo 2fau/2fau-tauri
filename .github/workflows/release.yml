@@ -1,0 +1,63 @@
+name: Release
+
+# Builds native installers on each OS (the reliable path — cross-building a
+# Windows NSIS installer from macOS is unsupported/flaky). Triggered by a version
+# tag, or manually.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  bundle:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest # Apple Silicon
+            target: aarch64-apple-darwin
+          - platform: macos-13 # Intel
+            target: x86_64-apple-darwin
+          - platform: ubuntu-22.04
+            target: ""
+          - platform: windows-latest
+            target: ""
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "./ -> target"
+
+      - uses: jetli/wasm-pack-action@v0.4.0
+
+      - name: Install Linux bundling deps
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libglib2.0-dev
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # The frontend needs the ts-rs bindings (cargo test) and the WASM package.
+      - run: cargo test -p twofau-core
+      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm build:wasm
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/twofau-app
+          args: ${{ matrix.target && format('--target {0}', matrix.target) || '' }}
