@@ -1,15 +1,21 @@
 name: Release
 
 # Builds native installers on each OS (the reliable path — cross-building a
-# Windows NSIS installer from macOS is unsupported/flaky). Triggered by a version
-# tag, or manually.
+# Windows NSIS installer from macOS is unsupported/flaky). A v* tag publishes a
+# draft GitHub Release with the installers; manual dispatch just builds.
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
 
+# Least privilege by default; the bundle job elevates to what it needs.
+permissions:
+  contents: read
+
 jobs:
   bundle:
+    permissions:
+      contents: write # create/upload the draft release on a tag
     strategy:
       fail-fast: false
       matrix:
@@ -24,17 +30,17 @@ jobs:
             target: ""
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
         with:
           targets: ${{ matrix.target }}
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           workspaces: "./ -> target"
 
-      - uses: jetli/wasm-pack-action@v0.4.0
+      - uses: jetli/wasm-pack-action@0d096b08b4e5a7de8c28de67e11e945404e9eefa # v0.4.0
 
       - name: Install Linux bundling deps
         if: matrix.platform == 'ubuntu-22.04'
@@ -42,10 +48,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libglib2.0-dev
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
           cache: pnpm
@@ -55,9 +61,12 @@ jobs:
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm build:wasm
 
-      - uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/twofau-app
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          releaseName: ${{ github.ref_type == 'tag' && format('2FAU {0}', github.ref_name) || '' }}
+          releaseDraft: true
           args: ${{ matrix.target && format('--target {0}', matrix.target) || '' }}
