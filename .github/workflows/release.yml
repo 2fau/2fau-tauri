@@ -5,7 +5,9 @@ name: Release
 # draft GitHub Release with the installers; manual dispatch just builds.
 on:
   push:
-    tags: ["v*"]
+    tags:
+      - "v*" # versioned release -> draft GitHub Release
+      - "tip" # rolling tag moved by CI -> continuous prerelease
   workflow_dispatch:
 
 # Least privilege by default; the bundle job elevates to what it needs.
@@ -67,6 +69,9 @@ jobs:
         with:
           projectPath: apps/twofau-app
           tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
-          releaseName: ${{ github.ref_type == 'tag' && format('2FAU {0}', github.ref_name) || '' }}
-          releaseDraft: true
+          releaseName: ${{ github.ref_name == 'tip' && 'Continuous Release' || format('2FAU {0}', github.ref_name) }}
+          releaseBody: ${{ github.ref_name == 'tip' && 'Automatically built from the latest commit on main. Unstable.' || '' }}
+          # v* tags publish a draft; the rolling tip tag publishes a prerelease.
+          releaseDraft: ${{ github.ref_type == 'tag' && github.ref_name != 'tip' }}
+          prerelease: ${{ github.ref_name == 'tip' }}
           args: ${{ matrix.target && format('--target {0}', matrix.target) || '' }}
