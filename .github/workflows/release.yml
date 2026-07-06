@@ -1,23 +1,45 @@
 name: Release
 
 # Builds native installers on each OS (the reliable path — cross-building a
-# Windows NSIS installer from macOS is unsupported/flaky). A v* tag publishes a
-# draft GitHub Release with the installers; manual dispatch just builds.
+# Windows NSIS installer from macOS is unsupported/flaky).
+#
+#   - push to main / manual dispatch -> "Continuous Release" prerelease (tag: tip)
+#   - v* tag                          -> draft GitHub Release for that version
+#
+# Everything publishes in a single run with the default GITHUB_TOKEN, so no PAT
+# is needed (a tag push would otherwise not re-trigger a separate workflow).
 on:
   push:
-    tags:
-      - "v*" # versioned release -> draft GitHub Release
-      - "tip" # rolling tag moved by CI -> continuous prerelease
+    branches: [main]
+    tags: ["v*"]
   workflow_dispatch:
 
-# Least privilege by default; the bundle job elevates to what it needs.
+# Least privilege by default; the jobs that touch releases elevate to write.
 permissions:
   contents: read
 
 jobs:
-  bundle:
+  # For the rolling continuous build, drop the previous release + tip tag so it
+  # re-cuts at the current commit. Skipped for versioned (v*) releases.
+  reset-tip:
+    if: github.ref_type != 'tag'
+    runs-on: ubuntu-latest
     permissions:
-      contents: write # create/upload the draft release on a tag
+      contents: write
+    steps:
+      - name: Delete previous continuous release and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: gh release delete tip --repo "$REPO" --cleanup-tag --yes || true
+
+  bundle:
+    needs: [reset-tip]
+    # Run after reset-tip on the continuous path, or immediately for v* tags
+    # (where reset-tip is skipped).
+    if: always() && (needs.reset-tip.result == 'success' || needs.reset-tip.result == 'skipped')
+    permissions:
+      contents: write # create/upload the release
     strategy:
       fail-fast: false
       matrix:
@@ -51,8 +73,6 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libglib2.0-dev
 
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
-        with:
-          version: 9
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
@@ -65,13 +85,13 @@ jobs:
 
       - uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           projectPath: apps/twofau-app
-          tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
-          releaseName: ${{ github.ref_name == 'tip' && 'Continuous Release' || format('2FAU {0}', github.ref_name) }}
-          releaseBody: ${{ github.ref_name == 'tip' && 'Automatically built from the latest commit on main. Unstable.' || '' }}
-          # v* tags publish a draft; the rolling tip tag publishes a prerelease.
-          releaseDraft: ${{ github.ref_type == 'tag' && github.ref_name != 'tip' }}
-          prerelease: ${{ github.ref_name == 'tip' }}
+          # tag push -> versioned draft; otherwise the rolling "tip" prerelease.
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || 'tip' }}
+          releaseName: ${{ github.ref_type == 'tag' && format('2FAU {0}', github.ref_name) || 'Continuous Release' }}
+          releaseBody: ${{ github.ref_type == 'tag' && '' || 'Automatically built from the latest commit on main. Unstable.' }}
+          releaseDraft: ${{ github.ref_type == 'tag' }}
+          prerelease: ${{ github.ref_type != 'tag' }}
           args: ${{ matrix.target && format('--target {0}', matrix.target) || '' }}
