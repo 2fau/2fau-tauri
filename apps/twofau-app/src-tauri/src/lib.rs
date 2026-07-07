@@ -113,7 +113,7 @@ pub fn run() {
             app.manage(AppVault::new(vault_path));
 
             let show = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
-            let quit_item = MenuItem::with_id(app, "quit", "Quit 2FAU", true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", "Quit 2FAu", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show, &quit_item])?;
 
             TrayIconBuilder::new()

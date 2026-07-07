@@ -3,7 +3,7 @@ name = "twofau-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Pure OTP/model/merge logic for 2FAU (no I/O, no clock, no RNG)."
+description = "Pure OTP/model/merge logic for 2FAu (no I/O, no clock, no RNG)."
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "2FAU",
+  "productName": "2FAu",
   "version": "0.1.0",
   "identifier": "dev.artkost.2fau",
   "build": {
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "2FAU",
+        "title": "2FAu",
         "width": 320,
         "height": 480,
         "visible": false,
