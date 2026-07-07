@@ -1,4 +1,11 @@
-import { ClipboardPaste, Plus, ScanLine, Search, ShieldCheck, X } from "lucide-react";
+import {
+  ClipboardPaste,
+  Plus,
+  ScanLine,
+  Search,
+  ShieldCheck,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 import { AccountRow } from "@/components/account-row";
 import { TimerRing } from "@/components/timer-ring";
@@ -27,7 +34,9 @@ export function MenuBarView({
   const q = search.trim().toLowerCase();
   const filtered = q
     ? accounts.filter(
-        (a) => a.issuer.toLowerCase().includes(q) || a.label.toLowerCase().includes(q),
+        (a) =>
+          a.issuer.toLowerCase().includes(q) ||
+          a.label.toLowerCase().includes(q),
       )
     : accounts;
 
@@ -53,10 +62,17 @@ export function MenuBarView({
       <div className="flex items-center gap-2 px-3.5 py-[11px]">
         <TimerRing now={now} />
         <ShieldCheck className="size-4 text-primary" />
-        <span className="text-[15px] font-semibold">2FAU</span>
+        <span className="text-[15px] font-semibold">
+          2FA<span style={{ color: "rgb(10, 132, 255)" }}>u</span>
+        </span>
         <div className="ml-auto flex items-center gap-4">
           {capabilities.scanScreen && onScan && (
-            <Button size="icon-xs" variant="ghost" title="Scan QR from screen" onClick={onScan}>
+            <Button
+              size="icon-xs"
+              variant="ghost"
+              title="Scan QR from screen"
+              onClick={onScan}
+            >
               <ScanLine />
             </Button>
           )}
@@ -71,7 +87,12 @@ export function MenuBarView({
               <ClipboardPaste />
             </Button>
           )}
-          <Button size="icon-xs" variant="ghost" title="Add account" onClick={onAdd}>
+          <Button
+            size="icon-xs"
+            variant="ghost"
+            title="Add account"
+            onClick={onAdd}
+          >
             <Plus />
           </Button>
         </div>
@@ -104,7 +125,9 @@ export function MenuBarView({
           )}
 
           {filtered.length === 0 ? (
-            <p className="py-6 text-center text-[13px] text-muted-foreground">No matches</p>
+            <p className="py-6 text-center text-[13px] text-muted-foreground">
+              No matches
+            </p>
           ) : (
             <div
               className="divide-y overflow-y-auto"

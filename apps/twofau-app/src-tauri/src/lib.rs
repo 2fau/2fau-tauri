@@ -83,7 +83,10 @@ fn toggle_window(app: &AppHandle) {
     if window.is_visible().unwrap_or(false) {
         let _ = window.hide();
     } else {
-        let _ = window.move_window(Position::TrayBottomCenter);
+        // TrayCenter flips per-OS: below a top macOS menu-bar tray, above a
+        // bottom Windows/Linux taskbar tray. The *constrained* variant also
+        // clamps to the monitor so the popup is never cut off at a screen edge.
+        let _ = window.move_window_constrained(Position::TrayCenter);
         let _ = window.show();
         let _ = window.set_focus();
     }
