@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "2FAU",
+  "version": "0.1.0",
+  "description": "Local, encrypted TOTP/HOTP authenticator. Your codes are generated in your browser and never sent anywhere.",
+  "minimum_chrome_version": "116",
+  "action": { "default_popup": "popup.html", "default_title": "2FAU" },
+  "permissions": ["storage", "contextMenus", "offscreen", "activeTab", "alarms"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}
