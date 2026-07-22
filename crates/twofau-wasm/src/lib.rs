@@ -24,6 +24,15 @@ fn decode_secret(b64: &str) -> Result<Vec<u8>, JsError> {
         .map_err(|_| JsError::new("invalid base64 secret"))
 }
 
+fn decode_b64_array<const N: usize>(b64: &str, what: &str) -> Result<[u8; N], JsError> {
+    let bytes = STANDARD
+        .decode(b64)
+        .map_err(|_| JsError::new(&format!("invalid base64 {what}")))?;
+    bytes
+        .try_into()
+        .map_err(|_| JsError::new(&format!("{what} must be {N} bytes")))
+}
+
 #[wasm_bindgen]
 pub fn totp(
     secret_b64: &str,
@@ -100,6 +109,50 @@ pub fn seal_vault(doc: JsValue, passphrase: &str) -> Result<Vec<u8>, JsError> {
 pub fn open_vault(blob: &[u8], passphrase: &str) -> Result<JsValue, JsError> {
     let doc = twofau_core::open_with_passphrase(blob, passphrase)
         .map_err(|e| JsError::new(&e.to_string()))?;
+    Ok(serde_wasm_bindgen::to_value(&doc)?)
+}
+
+/// A fresh random 16-byte salt (base64), for a brand-new vault.
+#[wasm_bindgen]
+pub fn new_salt() -> Result<String, JsError> {
+    let mut salt = [0u8; SALT_LEN];
+    getrandom::getrandom(&mut salt).map_err(|_| JsError::new("RNG failure"))?;
+    Ok(STANDARD.encode(salt))
+}
+
+/// The salt recorded in an existing blob's header (base64).
+#[wasm_bindgen]
+pub fn vault_salt(blob: &[u8]) -> Result<String, JsError> {
+    let salt = twofau_core::salt_of(blob).map_err(|e| JsError::new(&e.to_string()))?;
+    Ok(STANDARD.encode(salt))
+}
+
+/// Derive the 32-byte vault key (base64) from a passphrase + salt. Hosts cache
+/// this instead of the passphrase so they don't re-run 600k PBKDF2 rounds.
+#[wasm_bindgen]
+pub fn derive_key(passphrase: &str, salt_b64: &str) -> Result<String, JsError> {
+    let salt: [u8; SALT_LEN] = decode_b64_array(salt_b64, "salt")?;
+    Ok(STANDARD.encode(twofau_core::derive_key(passphrase, &salt).to_bytes()))
+}
+
+/// Seal a `VaultDocument` with an already-derived key. The nonce is fresh per
+/// call; `salt_b64` must be the salt the key was derived from, since it is
+/// written into the header and bound as associated data.
+#[wasm_bindgen]
+pub fn seal_with_key(doc: JsValue, key_b64: &str, salt_b64: &str) -> Result<Vec<u8>, JsError> {
+    let doc: VaultDocument = serde_wasm_bindgen::from_value(doc)?;
+    let key = twofau_core::Key::from_bytes(decode_b64_array(key_b64, "key")?);
+    let salt: [u8; SALT_LEN] = decode_b64_array(salt_b64, "salt")?;
+    let mut nonce = [0u8; NONCE_LEN];
+    getrandom::getrandom(&mut nonce).map_err(|_| JsError::new("RNG failure"))?;
+    twofau_core::seal(&doc, &key, &salt, &nonce).map_err(|e| JsError::new(&e.to_string()))
+}
+
+/// Open a blob with an already-derived key.
+#[wasm_bindgen]
+pub fn open_with_key(blob: &[u8], key_b64: &str) -> Result<JsValue, JsError> {
+    let key = twofau_core::Key::from_bytes(decode_b64_array(key_b64, "key")?);
+    let doc = twofau_core::open(blob, &key).map_err(|e| JsError::new(&e.to_string()))?;
     Ok(serde_wasm_bindgen::to_value(&doc)?)
 }
 

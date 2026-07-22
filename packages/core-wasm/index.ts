@@ -16,6 +16,11 @@ import init, {
   open_vault as _openVault,
   new_id as _newId,
   now_ms as _nowMs,
+  new_salt as _newSalt,
+  vault_salt as _vaultSalt,
+  derive_key as _deriveKey,
+  seal_with_key as _sealWithKey,
+  open_with_key as _openWithKey,
 } from "./pkg/twofau_wasm.js";
 
 import type { ParsedOtp } from "./bindings/ParsedOtp";
@@ -91,4 +96,36 @@ export async function newId(): Promise<string> {
 export async function nowMs(): Promise<number> {
   await ensureReady();
   return _nowMs();
+}
+
+/** A fresh random 16-byte salt (base64) for a brand-new vault. */
+export async function newSalt(): Promise<string> {
+  await ensureReady();
+  return _newSalt();
+}
+
+/** The salt recorded in an existing blob's header (base64). */
+export async function vaultSalt(blob: Uint8Array): Promise<string> {
+  await ensureReady();
+  return _vaultSalt(blob);
+}
+
+/** Derive the vault key (base64). Expensive — cache the result, not the passphrase. */
+export async function deriveKey(passphrase: string, saltB64: string): Promise<string> {
+  await ensureReady();
+  return _deriveKey(passphrase, saltB64);
+}
+
+export async function sealWithKey(
+  doc: VaultDocument,
+  keyB64: string,
+  saltB64: string,
+): Promise<Uint8Array> {
+  await ensureReady();
+  return _sealWithKey(doc, keyB64, saltB64);
+}
+
+export async function openWithKey(blob: Uint8Array, keyB64: string): Promise<VaultDocument> {
+  await ensureReady();
+  return _openWithKey(blob, keyB64) as VaultDocument;
 }
