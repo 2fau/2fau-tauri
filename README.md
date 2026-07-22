@@ -10,36 +10,49 @@ storage, merge) is written **once in Rust** (`crates/twofau-core`) and shared tw
 A shared React UI (shadcn + lucide, macOS look) talks to a swappable `VaultService` port, so
 the same components run over Tauri IPC, direct WASM calls, or an HTTP backend.
 
-## Status — Sub-project 0: monorepo scaffold + shared core
+## Status
 
-This is the foundation. It ships the pure OTP/model/merge logic and proves the native + WASM
-dual build and the JS boundary. **No encryption yet** (sub-project 1) and **no app yet**
-(Tauri desktop is sub-project 3, the extension sub-project 4).
+Sub-projects 0–3 are done: shared core, encrypted vault, shared React UI, and a working
+menu-bar/tray desktop app with passphrase setup, OS-keyring unlock, TOTP + HOTP, otpauth://
+import and QR decoding. Next up is the Chrome extension (SP4), then device sync (SP5) —
+see [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Layout
 
 ```
-crates/twofau-core   pure Rust: HOTP/TOTP, Base32, otpauth, model, merge (no I/O, no clock, no RNG)
-crates/twofau-wasm   wasm-bindgen wrapper (RNG + clock helpers live only here)
-packages/core-wasm   wasm-pack output + typed TS index + Vitest interop smoke test
+crates/twofau-core     pure Rust: HOTP/TOTP, base32, otpauth, model, vault crypto, merge
+crates/twofau-wasm     wasm-bindgen wrapper (RNG + clock helpers live only here)
+packages/core-wasm     wasm-pack output + ts-rs bindings + typed TS index
+packages/ui            shared React UI (@twofau/ui) + Storybook + Vitest
+apps/twofau-app        Tauri 2 desktop app (tray agent + popup)
 ```
 
 ## Develop
 
 ```bash
-# Rust core
-cargo test                       # unit tests + emits packages/core-wasm/bindings (ts-rs)
-cargo clippy --all-targets -- -D warnings
-cargo fmt --check
-
-# WASM + JS interop
 pnpm install
-pnpm build:wasm                  # wasm-pack build --target web
-pnpm --filter @twofau/core-wasm test
+cargo test -p twofau-core        # unit tests + emits packages/core-wasm/bindings (ts-rs)
+pnpm build:core-wasm             # wasm-pack build --target web
+pnpm tauri dev                   # run the desktop tray app
 ```
+
+Full command list and the platform gotchas: [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
+
+## Docs
+
+- [`CLAUDE.md`](CLAUDE.md) — orientation + hard invariants
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — module map, data flow, vault format
+- [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) — commands, verification, traps
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — sub-projects and known debt
+- [`docs/specs/`](docs/specs) — per-sub-project design specs
 
 ## Design invariants
 
 - **Time-pure:** OTP functions take `unix_time`; the core never reads the clock.
-- **RNG-free:** the core never generates UUIDs or timestamps; the host supplies them.
+- **RNG-free:** the core never generates UUIDs, salts or nonces; the host supplies them.
 - **Secret-free `Account`:** secrets live only in `StoredAccount`, never in the UI model.
+- **UI knows no backend:** every component goes through the `VaultService` port.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE).
