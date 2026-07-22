@@ -60,21 +60,42 @@ function makeArea(quota: Quota | null): FakeArea {
   return area;
 }
 
+export interface FakeAlarms {
+  /** Alarm name -> the delay it was last armed with, in minutes. */
+  created: Record<string, number>;
+  create(name: string, info: { delayInMinutes: number }): void;
+  clear(name: string): Promise<boolean>;
+}
+
 export interface FakeChrome {
   sync: FakeArea;
   local: FakeArea;
   session: FakeArea;
+  alarms: FakeAlarms;
 }
 
 /** Install a fake `chrome` global and return its areas for assertions. */
 export function installFakeChrome(): FakeChrome {
+  const alarms: FakeAlarms = {
+    created: {},
+    create(name, info) {
+      alarms.created[name] = info.delayInMinutes;
+    },
+    async clear(name) {
+      const existed = name in alarms.created;
+      delete alarms.created[name];
+      return existed;
+    },
+  };
   const fake: FakeChrome = {
     sync: makeArea({ total: SYNC_QUOTA_BYTES, perItem: SYNC_QUOTA_BYTES_PER_ITEM }),
     local: makeArea(null),
     session: makeArea(null),
+    alarms,
   };
   (globalThis as unknown as { chrome: unknown }).chrome = {
     storage: { sync: fake.sync, local: fake.local, session: fake.session },
+    alarms,
     runtime: { getURL: (path: string) => `chrome-extension://test/${path}` },
   };
   return fake;
