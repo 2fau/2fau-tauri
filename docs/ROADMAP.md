@@ -9,22 +9,23 @@ in `docs/specs/`.
 | SP1 | Crypto + storage (PBKDF2 → AES-GCM vault blob, `VaultStore`) | **done** | `specs/2026-07-01-subproject1-crypto-storage.md` |
 | SP2 | Shared React UI (`@twofau/ui`, `VaultService` port, Storybook) | **done** | `specs/2026-07-02-subproject2-shared-ui.md` |
 | SP3 | Tauri desktop app (tray, popup, keyring, setup/unlock) | **done** | `specs/2026-07-04-subproject3-tauri-desktop.md` |
-| SP4 | Chrome extension (MV3), full parity, `chrome.storage` backend | **next** | — |
-| SP5 | Desktop localhost sync server + bidirectional merge | planned | — |
+| SP4 | Chrome extension (MV3), full parity, `chrome.storage` backend | **in progress** | `specs/2026-07-22-subproject4-chrome-extension.md` |
+| SP5 | Desktop localhost bridge + sync | planned | — |
 
-## SP4 — Chrome extension (next)
+## SP4 — Chrome extension (in progress)
 
-Scope: reuse `@twofau/ui` unchanged; implement a third `VaultService` over
-`chrome.storage.local` + the WASM core (`@twofau/core-wasm`). Feature parity with desktop:
-list/add/edit/delete, TOTP + HOTP, otpauth:// paste, QR from an image, passphrase
-setup/unlock. Capabilities differ — no screen scan — which the existing `Capabilities` flag
-on `VaultService` already models.
+Standalone MV3 extension reusing `@twofau/ui` unchanged, with a third `VaultService` over the
+WASM core and `chrome.storage`. Full spec: `specs/2026-07-22-subproject4-chrome-extension.md`.
 
-Open questions to settle first:
-- MV3 service-worker lifetime vs. holding a decrypted vault in memory (probably: unlock per
-  popup session, key held in the popup, not the worker).
-- Where the WASM binary is loaded from under MV3's CSP.
-- Whether the extension writes the same blob format as desktop (it should — SP5 depends on it).
+Shape, in one paragraph: the vault is the same sealed blob format as `vault.dat`, chunked
+across `chrome.storage.sync` behind a manifest that acts as the commit point, with a revision
+guard that runs `twofau_core::merge` only when a concurrent write beat us. The derived key
+(not the passphrase) sits in `chrome.storage.session`, cleared by a `chrome.alarms` auto-lock.
+Surfaces: popup, options page, a context menu that copies codes for the five most recent
+accounts via an offscreen document, a keyboard shortcut, and QR capture from the current tab.
+No content script and no host permissions.
+
+`createVaultService()` is the seam SP5 plugs the desktop bridge into.
 
 ## SP5 — sync
 
