@@ -5,6 +5,7 @@
   "description": "Local, encrypted TOTP/HOTP authenticator. Your codes are generated in your browser and never sent anywhere.",
   "minimum_chrome_version": "116",
   "action": { "default_popup": "popup.html", "default_title": "2FAU" },
+  "options_page": "options.html",
   "background": { "service_worker": "background.js", "type": "module" },
   "commands": {
     "_execute_action": {

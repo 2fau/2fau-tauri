@@ -7,5 +7,10 @@
 html,
 body {
   margin: 0;
+}
+
+/* The popup is a fixed-width panel; the options page is a normal document, so
+   only pin the width when the popup's 320px root is present. */
+body:has(> #root > .w-\[320px\]) {
   width: 320px;
 }

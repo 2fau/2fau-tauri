@@ -33,6 +33,7 @@ describe("manifest.json", () => {
   it("only references files that exist", () => {
     for (const path of Object.values(manifest.icons)) expect(existsSync(root(path))).toBe(true);
     expect(existsSync(root(manifest.action.default_popup))).toBe(true);
+    expect(existsSync(root(manifest.options_page))).toBe(true);
   });
 
   it("registers the service worker as a module", () => {
