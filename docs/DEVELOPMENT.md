@@ -41,6 +41,11 @@ pnpm --filter @twofau/ui typecheck
 pnpm tauri dev                            # run the real tray app
 pnpm tauri build                          # installers for the host OS
 pnpm tauri build -- --no-bundle           # just the binary, skips installer tooling
+
+# Chrome extension
+pnpm --filter @twofau/extension test      # extension unit tests
+pnpm --filter @twofau/extension build     # -> apps/twofau-extension/dist (load unpacked)
+pnpm --filter @twofau/extension dev       # rebuild on change
 ```
 
 ## Verify (run before claiming anything is done)
@@ -77,12 +82,18 @@ human looking at the screen. Say so rather than implying a GUI fix was verified.
 - **The desktop bundle still ships the ~600 KB WASM blob** even though the Tauri app doesn't
   need it (it comes in via `MockVaultService`). Fixable by moving the mock to a subpath
   export; not done yet.
+- **The extension's `dist/` entry names are fixed** (`popup.js`, `background.js`,
+  `options.js`, `offscreen.js`) because `manifest.json` can't reference hashed files. Don't
+  "fix" the Rollup output names.
+- **`chrome.storage.sync` is 100 KB total / 8 KB per item.** The vault is chunked at 6144
+  chars; a large vault will hit the ceiling and raise `VaultQuotaError`.
 
 ## CI / release
 
-- `.github/workflows/ci.yml` — three jobs: `rust` (fmt/clippy/test), `wasm` (wasm-pack +
-  JS interop + UI tests), `app` (frontend build + `cargo check`). All actions are pinned to
-  commit SHAs and the token is `contents: read`.
+- `.github/workflows/ci.yml` — four jobs: `rust` (fmt/clippy/test), `wasm` (wasm-pack +
+  JS interop + UI tests), `app` (frontend build + `cargo check`), and `extension`
+  (extension tests + build). All actions are pinned to commit SHAs and the token is
+  `contents: read`.
 - `.github/workflows/release.yml` — pushes to `main` publish a **continuous prerelease**
   under a rolling `tip` tag (the run deletes and recreates the tag itself, so no PAT is
   needed); `v*` tags produce a draft release. Matrix: macOS arm64 + x64, Ubuntu, Windows.

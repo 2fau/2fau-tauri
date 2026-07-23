@@ -9,10 +9,10 @@ in `docs/specs/`.
 | SP1 | Crypto + storage (PBKDF2 → AES-GCM vault blob, `VaultStore`) | **done** | `specs/2026-07-01-subproject1-crypto-storage.md` |
 | SP2 | Shared React UI (`@twofau/ui`, `VaultService` port, Storybook) | **done** | `specs/2026-07-02-subproject2-shared-ui.md` |
 | SP3 | Tauri desktop app (tray, popup, keyring, setup/unlock) | **done** | `specs/2026-07-04-subproject3-tauri-desktop.md` |
-| SP4 | Chrome extension (MV3), full parity, `chrome.storage` backend | **in progress** | `specs/2026-07-22-subproject4-chrome-extension.md` |
-| SP5 | Desktop localhost bridge + sync | planned | — |
+| SP4 | Chrome extension (MV3), full parity, `chrome.storage` backend | **done** | `specs/2026-07-22-subproject4-chrome-extension.md` |
+| SP5 | Desktop localhost bridge + sync | **next** | — |
 
-## SP4 — Chrome extension (in progress)
+## SP4 — Chrome extension (done)
 
 Standalone MV3 extension reusing `@twofau/ui` unchanged, with a third `VaultService` over the
 WASM core and `chrome.storage`. Full spec: `specs/2026-07-22-subproject4-chrome-extension.md`.
