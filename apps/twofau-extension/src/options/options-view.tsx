@@ -60,14 +60,108 @@ export function OptionsView() {
         )}
       </section>
 
-      <section className="flex flex-col gap-1.5" id="vault">
-        <span className="text-[13px] font-medium">Vault</span>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled title="Added in the next task">
-            Change passphrase
-          </Button>
-        </div>
-      </section>
+      <VaultSection />
     </div>
+  );
+}
+
+function VaultSection() {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [importPassphrase, setImportPassphrase] = useState("");
+  const [status, setStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function service() {
+    const { ExtensionVaultService } = await import("../vault/extension-vault-service");
+    return ExtensionVaultService.create();
+  }
+
+  async function run(work: () => Promise<string>) {
+    setError(null);
+    setStatus(null);
+    try {
+      setStatus(await work());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  return (
+    <section className="flex flex-col gap-3">
+      <span className="text-[13px] font-medium">Vault</span>
+
+      <div className="flex flex-col gap-1.5">
+        <Input
+          type="password"
+          placeholder="Current passphrase"
+          value={current}
+          onChange={(e) => setCurrent(e.target.value)}
+        />
+        <Input
+          type="password"
+          placeholder="New passphrase"
+          value={next}
+          onChange={(e) => setNext(e.target.value)}
+        />
+        <Button
+          size="sm"
+          disabled={current.length === 0 || next.length < 8}
+          onClick={() =>
+            void run(async () => {
+              await (await service()).changePassphrase(current, next);
+              setCurrent("");
+              setNext("");
+              return "Passphrase changed.";
+            })
+          }
+        >
+          Change passphrase
+        </Button>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() =>
+            void run(async () => {
+              const { downloadBlob } = await import("../vault/transfer");
+              downloadBlob(await (await service()).exportBlob(), "2fau-vault.dat");
+              return "Exported. The file is encrypted with your passphrase.";
+            })
+          }
+        >
+          Export encrypted vault
+        </Button>
+
+        <Input
+          type="password"
+          placeholder="Passphrase of the file to import"
+          value={importPassphrase}
+          onChange={(e) => setImportPassphrase(e.target.value)}
+        />
+        <input
+          type="file"
+          accept=".dat,application/octet-stream"
+          className="text-[12px]"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            void run(async () => {
+              const { readFileBytes } = await import("../vault/transfer");
+              const count = await (await service()).importBlob(
+                await readFileBytes(file),
+                importPassphrase,
+              );
+              return `Imported. The vault now holds ${count} account${count === 1 ? "" : "s"}.`;
+            });
+          }}
+        />
+      </div>
+
+      {status && <p className="text-[11px] text-muted-foreground">{status}</p>}
+      {error && <p className="text-[11px] text-destructive">{error}</p>}
+    </section>
   );
 }

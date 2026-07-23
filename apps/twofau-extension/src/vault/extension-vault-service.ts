@@ -193,6 +193,58 @@ export class ExtensionVaultService implements VaultService {
     );
   }
 
+  /** Re-derive under a new passphrase and re-seal with a fresh salt. */
+  async changePassphrase(current: string, next: string): Promise<void> {
+    const loaded = await this.repo.load();
+    if (!loaded) throw new Error("There is no vault to re-encrypt.");
+
+    const currentKey = await deriveKey(current, await vaultSalt(loaded.blob));
+    let doc: VaultDocument;
+    try {
+      doc = await openWithKey(loaded.blob, currentKey);
+    } catch (cause) {
+      throw new Error("Wrong passphrase", { cause });
+    }
+
+    const salt = await newSalt();
+    const key = await deriveKey(next, salt);
+    const blob = await sealWithKey(doc, key, salt);
+    const result = await this.repo.save(blob, salt, KDF_ID, loaded.manifest.revision);
+    if (!result.ok) {
+      throw new Error("The vault changed in another browser — reopen and try again.");
+    }
+    await setSessionKey(key);
+    // The stored key is now the new one, so the cache has to move with it, or
+    // this instance's next read would decrypt the new blob with the old key.
+    this.cached = { revision: result.manifest.revision, doc };
+    this.unlocked = true;
+  }
+
+  /** The sealed blob exactly as stored — same format as the desktop vault.dat. */
+  async exportBlob(): Promise<Uint8Array> {
+    const loaded = await this.repo.load();
+    if (!loaded) throw new Error("There is no vault to export.");
+    return loaded.blob;
+  }
+
+  /** Merge an exported blob into this vault. Returns the resulting account count. */
+  async importBlob(blob: Uint8Array, passphrase: string): Promise<number> {
+    const importedKey = await deriveKey(passphrase, await vaultSalt(blob));
+    let imported: VaultDocument;
+    try {
+      imported = await openWithKey(blob, importedKey);
+    } catch (cause) {
+      throw new Error("Wrong passphrase for that file", { cause });
+    }
+
+    // Merge through the core rather than by hand, so import obeys exactly the
+    // same newest-wins/tombstone rules as concurrent sync writes.
+    const { doc, manifest, key } = await this.read();
+    const merged = await merge(doc, imported);
+    await this.commit(merged, manifest, key);
+    return merged.entries.length;
+  }
+
   // MARK: internals
 
   private async requireKey(): Promise<string> {
