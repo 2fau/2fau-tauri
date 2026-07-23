@@ -26,8 +26,8 @@ import { VaultRepo, type VaultManifest } from "./vault-repo";
 /** PBKDF2-HMAC-SHA256; the only KDF the blob format defines today. */
 export const KDF_ID = 1;
 
-/** Set true once the activeTab capture spike in Task 11 confirms it works. */
-const SCAN_SUPPORTED = false;
+/** Confirmed by the Task 11 spike: activeTab covers a popup button click. */
+const SCAN_SUPPORTED = true;
 
 const MAX_MERGE_ATTEMPTS = 3;
 

@@ -21,7 +21,24 @@ async function bootstrap() {
     root.render(<Failed message={err instanceof Error ? err.message : String(err)} />);
     return;
   }
-  root.render(<TwoFAUApp service={service} />);
+  root.render(
+    <TwoFAUApp
+      service={service}
+      onScan={() => {
+        void (async () => {
+          const { scanCurrentTab } = await import("../vault/scan");
+          try {
+            await service.addUri(await scanCurrentTab());
+            // Reopening is the simplest reliable refresh: the provider reloads
+            // its account list on mount.
+            window.location.reload();
+          } catch (err) {
+            console.error(err);
+          }
+        })();
+      }}
+    />,
+  );
 }
 
 void bootstrap();
