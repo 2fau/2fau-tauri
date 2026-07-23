@@ -355,7 +355,7 @@ Create `apps/twofau-extension/package.json`:
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
-    "@types/chrome": "^0.0.287",
+    "@types/chrome": "^0.2.2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.3.4",
@@ -363,7 +363,7 @@ Create `apps/twofau-extension/package.json`:
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.7",
-    "vite-plugin-static-copy": "^2.2.0",
+    "vite-plugin-static-copy": "^4.1.1",
     "vitest": "^2.1.9"
   }
 }

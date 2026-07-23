@@ -12,10 +12,10 @@ the same components run over Tauri IPC, direct WASM calls, or an HTTP backend.
 
 ## Status
 
-Sub-projects 0–3 are done: shared core, encrypted vault, shared React UI, and a working
-menu-bar/tray desktop app with passphrase setup, OS-keyring unlock, TOTP + HOTP, otpauth://
-import and QR decoding. Next up is the Chrome extension (SP4), then device sync (SP5) —
-see [`docs/ROADMAP.md`](docs/ROADMAP.md).
+Sub-projects 0–4 are done: shared core, encrypted vault, shared React UI, a
+menu-bar/tray desktop app, and a Manifest V3 Chrome extension with the same
+encrypted vault synced through `chrome.storage.sync`. Next up is the desktop
+localhost bridge and device sync (SP5) — see [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Layout
 
@@ -25,6 +25,7 @@ crates/twofau-wasm     wasm-bindgen wrapper (RNG + clock helpers live only here)
 packages/core-wasm     wasm-pack output + ts-rs bindings + typed TS index
 packages/ui            shared React UI (@twofau/ui) + Storybook + Vitest
 apps/twofau-app        Tauri 2 desktop app (tray agent + popup)
+apps/twofau-extension  Chrome extension (MV3): popup, options, service worker
 ```
 
 ## Develop

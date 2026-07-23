@@ -24,3 +24,8 @@ export type {
   OtpType,
   OtpAlgorithm,
 } from "@/core/types";
+
+// Host apps need these to render account names and call the WASM OTP functions
+// exactly the way the shared components do.
+export { algorithmArg, formatCode, primaryName, secondaryName } from "@/lib/format";
+export { decodeQrDataUrl, decodeQrImage } from "@/lib/qr";

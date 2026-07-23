@@ -48,6 +48,13 @@ impl Key {
     pub fn from_bytes(bytes: [u8; 32]) -> Key {
         Key(bytes)
     }
+
+    /// The raw key material. Hosts that cache a derived key instead of the
+    /// passphrase (the Chrome extension's session storage) need this — treat
+    /// the result as secret.
+    pub fn to_bytes(&self) -> [u8; 32] {
+        self.0
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -143,6 +150,13 @@ pub fn open_with_passphrase(blob: &[u8], passphrase: &str) -> Result<VaultDocume
         Kdf::Pbkdf2HmacSha256 => derive_key(passphrase, &salt),
     };
     open(blob, &key)
+}
+
+/// Read the salt out of a sealed blob's header, so a host can derive the key
+/// separately from opening the blob (and cache the key).
+pub fn salt_of(blob: &[u8]) -> Result<[u8; SALT_LEN], VaultError> {
+    let parsed = parse(blob)?;
+    parsed.salt.try_into().map_err(|_| VaultError::BadFormat)
 }
 
 // MARK: header/parse
@@ -257,6 +271,21 @@ mod tests {
             open_with_passphrase(&blob, "pw"),
             Err(VaultError::DecryptFailed)
         );
+    }
+
+    #[test]
+    fn salt_of_reads_the_header_salt() {
+        let blob = seal_with_passphrase(&sample_doc(), "pw", &SALT, &NONCE).unwrap();
+        assert_eq!(salt_of(&blob).unwrap(), SALT);
+        assert_eq!(salt_of(b"short"), Err(VaultError::BadFormat));
+    }
+
+    #[test]
+    fn derived_key_bytes_round_trip_through_from_bytes() {
+        let key = derive_key("pw", &SALT);
+        let same = Key::from_bytes(key.to_bytes());
+        let blob = seal(&sample_doc(), &key, &SALT, &NONCE).unwrap();
+        assert_eq!(open(&blob, &same).unwrap(), sample_doc());
     }
 
     #[test]
