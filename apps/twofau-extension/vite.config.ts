@@ -29,7 +29,11 @@ export default defineConfig({
   build: {
     target: "es2022",
     rollupOptions: {
-      input: { popup: entry("popup.html") },
+      input: {
+        popup: entry("popup.html"),
+        offscreen: entry("offscreen.html"),
+        background: entry("src/background/index.ts"),
+      },
       output: {
         // Fixed names: manifest.json can't reference hashed files.
         entryFileNames: "[name].js",

@@ -35,6 +35,14 @@ describe("manifest.json", () => {
     expect(existsSync(root(manifest.action.default_popup))).toBe(true);
   });
 
+  it("registers the service worker as a module", () => {
+    expect(manifest.background).toEqual({ service_worker: "background.js", type: "module" });
+  });
+
+  it("binds a shortcut that opens the popup", () => {
+    expect(manifest.commands._execute_action.suggested_key.default).toBe("Ctrl+Shift+U");
+  });
+
   // The source-tree check above can't catch a build that relocates files, which
   // is exactly how the icons first shipped double-nested under dist/icons/icons.
   it("resolves its paths inside dist when a build is present", () => {
@@ -42,5 +50,8 @@ describe("manifest.json", () => {
     if (!existsSync(dist("manifest.json"))) return; // not built yet
     for (const path of Object.values(manifest.icons)) expect(existsSync(dist(path))).toBe(true);
     expect(existsSync(dist(manifest.action.default_popup))).toBe(true);
+    // The service worker the manifest names must actually be emitted, or Chrome
+    // rejects the whole extension at load.
+    expect(existsSync(dist(manifest.background.service_worker))).toBe(true);
   });
 });
