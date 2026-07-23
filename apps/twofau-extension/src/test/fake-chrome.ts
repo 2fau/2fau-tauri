@@ -67,11 +67,26 @@ export interface FakeAlarms {
   clear(name: string): Promise<boolean>;
 }
 
+export interface FakeMenuItem {
+  id: string;
+  title: string;
+  parentId?: string;
+  enabled?: boolean;
+  contexts?: string[];
+}
+
+export interface FakeContextMenus {
+  items: FakeMenuItem[];
+  create(item: FakeMenuItem): void;
+  removeAll(): Promise<void>;
+}
+
 export interface FakeChrome {
   sync: FakeArea;
   local: FakeArea;
   session: FakeArea;
   alarms: FakeAlarms;
+  contextMenus: FakeContextMenus;
 }
 
 /** Install a fake `chrome` global and return its areas for assertions. */
@@ -87,15 +102,26 @@ export function installFakeChrome(): FakeChrome {
       return existed;
     },
   };
+  const contextMenus: FakeContextMenus = {
+    items: [],
+    create(item) {
+      contextMenus.items.push(item);
+    },
+    async removeAll() {
+      contextMenus.items = [];
+    },
+  };
   const fake: FakeChrome = {
     sync: makeArea({ total: SYNC_QUOTA_BYTES, perItem: SYNC_QUOTA_BYTES_PER_ITEM }),
     local: makeArea(null),
     session: makeArea(null),
     alarms,
+    contextMenus,
   };
   (globalThis as unknown as { chrome: unknown }).chrome = {
     storage: { sync: fake.sync, local: fake.local, session: fake.session },
     alarms,
+    contextMenus,
     runtime: { getURL: (path: string) => `chrome-extension://test/${path}` },
   };
   return fake;
